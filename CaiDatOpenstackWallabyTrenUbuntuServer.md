@@ -78,7 +78,6 @@ network:
         - 1.1.1.1
     eno4:
       addresses: [10.10.24.200/24]
-      gateway4: 10.10.24.1
       nameservers:
         addresses:
         - 8.8.8.8
@@ -95,8 +94,8 @@ network:
 **Sau khi cài đặt xong hệ điều hành và mạng cần chú ý:**
 
 - Các đường mạng: 
-  - eno1: Sử dụng để cho các máy chủ truy cập Internet và để ssh vào các máy chủ.
-  - eno2: Sử dụng để giao tiếp giữa các thành phần của Openstack
+  - eno3: Sử dụng để cho các máy chủ truy cập Internet và để ssh vào các máy chủ.
+  - eno4: Sử dụng để giao tiếp giữa các thành phần của Openstack
   - bonds: Sử dụng để cho các máy ảo trên Openstack truy cập Internet
 
   **Nếu các máy chủ lưu trữ dữ liệu để riêng thì các máy chủ này không cần đường bonds**.
