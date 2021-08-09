@@ -3,8 +3,8 @@
 
 # Trong repo này có tài liệu về
 
-[Hướng dẫn cài đặt Openstack Wallaby](CaiDatOpenstackWallabyTrenUbuntuServer.md)
+[Hướng dẫn cài đặt Openstack Wallaby](docs/deploy-openstack/CaiDatOpenstackWallabyTrenUbuntuServer.md)
 
-[Hướng dẫn tạo image Ubuntu Bionic](CreateImageUbuntuBionic.md)
+[Hướng dẫn tạo image Ubuntu Bionic](docs/create-image/CreateImageUbuntuBionic.md)
 
-[Các lệnh cơ bản hay dùng trong Openstack CLI](OpenstackCLI.md)
+[Các lệnh cơ bản hay dùng trong Openstack CLI](docs/OpenstackCLI.md)
