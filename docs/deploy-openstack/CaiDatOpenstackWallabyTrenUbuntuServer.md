@@ -659,7 +659,7 @@ systemctl stop openvswitch-switch
 
 ```
 docker exec -u0 -it grafana bash
-admin reset-admin-password <NEW_PASS>
+grafana-cli admin reset-admin-password <NEW_PASS>
 ```
 
 **Không thể tải Docker images khi dùng proxy**
