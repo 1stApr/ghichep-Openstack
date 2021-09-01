@@ -1,0 +1,158 @@
+heat_template_version: 2016-04-08
+
+description: >
+  This template demostrate how to use senlin resources to create
+  a flexible cluster.
+parameters:
+  flavor:
+    description: Flavor for the instances to be created.
+    type: string
+    default: t2.micro
+  image:
+    description: Name or ID of the image to use for the instances.
+    type: string
+    default: Cirros
+  key_name:
+    description: Name of an existing key pair to use for the instances.
+    type: string
+    default: mykey
+  network:
+    description: The network for the instances.
+    type: string
+    default: Private01
+
+resources:
+  profile:
+    type: OS::Senlin::Profile
+    properties:
+      name: heat_profile_cirros_server
+      type: os.nova.server-1.0
+      properties:
+        name: cirros_server_from_heat_cluster
+        flavor: {get_param: flavor}
+        image: {get_param: image}
+        key_name: {get_param: key_name}
+        networks:
+          - network: {get_param: network}
+        metadata:
+          test_key: test_value
+        user_data: |
+          #!/bin/sh
+          echo 'Install package' >> /tmp/log_start_file
+
+          echo 'Install Prometheus agent' >> /tmp/log_start_file
+
+          echo 'Config Prometheus' >> /tmp/log_start_file
+
+          echo 'Get infor instance' >> /tmp/log_start_file
+
+          echo 'Send IP to Prometheus server' >> /tmp/log_start_file
+
+          echo 'Finish!' >> /tmp/log_start_file
+
+  cluster:
+    type: OS::Senlin::Cluster
+    properties:
+      name: heat_cluster_cirros_server
+      desired_capacity: 0
+      min_size: 0
+      max_size: -1
+      profile: {get_resource: profile}
+
+  scale_in_policy:
+    type: OS::Senlin::Policy
+    properties:
+      name: heat_scale_in_policy_cirros_server
+      type: senlin.policy.scaling-1.0
+      bindings:
+        - cluster: {get_resource: cluster}
+      properties:
+        event: CLUSTER_SCALE_IN
+        adjustment:
+          type: CHANGE_IN_CAPACITY
+          number: 1
+
+  scale_out_policy:
+    type: OS::Senlin::Policy
+    properties:
+      name: heat_scale_out_policy_cirros_server
+      type: senlin.policy.scaling-1.0
+      bindings:
+        - cluster: {get_resource: cluster}
+      properties:
+        event: CLUSTER_SCALE_OUT
+        adjustment:
+          type: CHANGE_IN_CAPACITY
+          number: 1
+  
+  deletion_policy:
+    type: OS::Senlin::Policy
+    properties:
+      name: heat_deletion_policy_cirros_server
+      type: senlin.policy.deletion-1.0
+      bindings:
+        - cluster: {get_resource: cluster}
+      properties:
+        # Xoa theo thu tu OLDEST_FIRST, OLDEST_PROFILE_FIRST, YOUNGEST_FIRST, RANDOM
+        criteria: OLDEST_FIRST
+        # Nut bi xoa co bi huy hay khong
+        destroy_after_deletion: True
+        # Thoi gian truoc khi qua trinh xoa xay ra (s)
+        grace_period: 30
+        # Giam kich thuoc mong muon cua cum sau khi xoa
+        reduce_desired_capacity: False
+
+  health_policy:
+    type: OS::Senlin::Policy
+    properties:
+      name: heat_health_policy_cirros_server
+      type: senlin.policy.health-1.0
+      bindings:
+        - cluster: {get_resource: cluster}
+      properties:
+        detection:
+          # Number of seconds between two adjacent checking
+          interval: 60
+          detection_modes:
+            # Type for health checking, valid values include:
+            # NODE_STATUS_POLLING, NODE_STATUS_POLL_URL, LIFECYCLE_EVENTS
+            - type: NODE_STATUS_POLLING
+        recovery:
+          # Action that can be retried on a failed node, will improve to
+          # support multiple actions in the future. Valid values include:
+          # REBOOT, REBUILD, RECREATE
+          actions:
+            - name: RECREATE
+
+  receiver_scale_out:
+    type: OS::Senlin::Receiver
+    properties:
+      name: heat_receiver_scale_out_cirros_server
+      cluster: {get_resource: cluster}
+      action: CLUSTER_SCALE_OUT
+      type: webhook
+
+  receiver_scale_in:
+    type: OS::Senlin::Receiver
+    properties:
+      name: heat_receiver_scale_in_cirros_server
+      cluster: {get_resource: cluster}
+      action: CLUSTER_SCALE_IN
+      type: webhook
+
+outputs:
+  webhook_scale_out:
+    description: Webhook to scale out cluster.
+    value:
+      str_replace:
+        template: curl -X POST LINK
+        params:
+          LINK: {get_attr: [receiver_scale_out, channel, alarm_url]}
+
+  webhook_scale_in:
+    description: Webhook to scale in cluster.
+    value:
+      str_replace:
+        template: curl -X POST LINK
+        params:
+          LINK: {get_attr: [receiver_scale_in, channel, alarm_url]}
