@@ -139,6 +139,8 @@ timedatectl set-timezone Asia/Ho_Chi_Minh
 
 ** Tạo phân vùng Cinder**
 
+Ví dụ phân vùng cho Cinder là /dev/sdb và /dev/sdc:
+
 ⚠️ Tất cả dữ liệu trên phân vùng /dev/sdb và /dev/sdc sẽ bị mất!
 
 ```
@@ -374,6 +376,9 @@ enable_prometheus: "yes"
 enable_grafana: "yes"
 enable_gnocchi: "yes"
 enable_collectd: "yes"
+
+enable_heat: "yes"
+enable_senlin: "yes"
 
 enable_swift : "yes"
 enable_swift_s3api: "yes"
