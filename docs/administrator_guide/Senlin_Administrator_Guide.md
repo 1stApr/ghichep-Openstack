@@ -5,7 +5,7 @@ apt install python3-senlinclient
 
 # Profiles
 
-## Tạo Frofile đầu tiên
+## Tạo profile đầu tiên
 
 ```
 mkdir senlin
