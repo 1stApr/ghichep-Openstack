@@ -315,12 +315,6 @@ control03
 control01
 control02
 control03
-compute01
-compute02
-compute03
-storage01
-storage02
-storage03
 
 [storage]
 storage01
