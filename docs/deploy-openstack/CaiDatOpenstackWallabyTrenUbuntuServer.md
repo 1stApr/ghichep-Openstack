@@ -722,4 +722,9 @@ Ví dụ deploy thêm Octavia
 kolla-ansible -i multinode deploy --tags common,horizon,octavia
 ```
 
+**Kiểm tra lại cấu hình**
+```
+cat /etc/kolla/globals.yml | egrep -v '^#|^$'
+```
+
 ----
