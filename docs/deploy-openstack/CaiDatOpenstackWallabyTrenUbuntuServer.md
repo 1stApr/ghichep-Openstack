@@ -243,7 +243,7 @@ sudo pip3 install -U pip
 Cài đặt Ansible
 
 ```
-sudo apt-get install ansible -y
+pip3 install "ansible==2.10.7"
 ```
 
 Cài đặt Kolla-ansible
@@ -364,7 +364,7 @@ nova_compute_virt_type: "kvm"
 
 enable_cinder: "yes"
 enable_cinder_backend_lvm: "yes"
-enable_cinder_backup: "yes"
+enable_cinder_backup: "no"
 
 enable_prometheus: "yes"
 enable_grafana: "yes"
