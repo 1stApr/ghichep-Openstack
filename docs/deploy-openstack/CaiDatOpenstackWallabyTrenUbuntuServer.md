@@ -368,8 +368,6 @@ enable_cinder_backup: "no"
 
 enable_prometheus: "yes"
 enable_grafana: "yes"
-enable_gnocchi: "yes"
-enable_collectd: "yes"
 
 enable_heat: "yes"
 enable_senlin: "yes"
@@ -603,6 +601,91 @@ glance image-create --name "cirros" \
   --disk-format qcow2 --container-format bare \
   --visibility=public
 ```
+### 4.6 Cài LoadBalancer 
+
+Thêm các dòng sau vào file globals.yml
+
+```
+vi /etc/kolla/global.yml
+```
+```
+enable_octavia: "yes"
+
+octavia_certs_country: US
+octavia_certs_state: Oregon
+octavia_certs_organization: OpenStack
+octavia_certs_organizational_unit: Octavia
+octavia_network_interface: "enp0s9"
+octavia_auto_configure: no
+enable_horizon_octavia: "{{ enable_octavia | bool }}"
+```
+
+Tạo chứng chỉ Octavia
+
+```
+kolla-ansible octavia-certificates
+```
+
+Cài đặt Octavia với Kolla-Ansible
+
+```
+kolla-ansible -i multinode deploy --tags common,horizon,octavia
+```
+
+### 4.7 Mẫu file globals.yml
+
+```
+prechecks_enable_host_ntp_checks: "false"
+kolla_base_distro: "ubuntu"
+kolla_install_type: "source"
+openstack_release: "xena"
+neutron_bridge_name: "br-ex"
+network_interface: "eno2"
+neutron_external_interface: "bond0"
+kolla_internal_vip_address: "10.10.24.250"
+enable_chrony: "yes"
+enable_neutron_provider_networks: "yes"
+enable_haproxy: "no"
+nova_compute_virt_type: "qemu"
+enable_cinder: "yes"
+enable_cinder_backend_lvm: "yes"
+enable_cinder_backup: "no"
+
+enable_grafana: "yes"
+enable_prometheus: "yes"
+
+enable_heat: "yes"
+enable_trove: "yes"
+enable_senlin: "yes"
+enable_octavia: "yes"
+enable_designate: "yes"
+enable_cloudkitty: "yes"
+
+
+enable_swift : "yes"
+enable_swift_s3api: "yes"
+
+api_interface: "{{ network_interface }}"
+storage_interface: "{{ network_interface }}"
+swift_storage_interface: "{{ storage_interface }}"
+kolla_external_vip_interface: "{{ network_interface }}"
+swift_replication_interface: "{{ swift_storage_interface }}"
+
+octavia_certs_country: US
+octavia_certs_state: Oregon
+octavia_certs_organization: OpenStack
+octavia_certs_organizational_unit: Octavia
+octavia_network_interface: "enp0s9"
+
+octavia_auto_configure: no
+
+enable_horizon_heat: "{{ enable_heat | bool }}"
+enable_horizon_trove: "{{ enable_trove | bool }}"
+enable_horizon_senlin: "{{ enable_senlin | bool }}"
+enable_horizon_octavia: "{{ enable_octavia | bool }}"
+
+```
+
 
 ## 5 Các lỗi hay gặp và lưu ý khác
 
