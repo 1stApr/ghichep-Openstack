@@ -798,12 +798,6 @@ grep "keystone_admin" /etc/kolla/passwords.yml
 grep "grafana_admin" /etc/kolla/passwords.yml
 ```
 
-**Deploy thêm service**
-
-Ví dụ deploy thêm Octavia
-```
-kolla-ansible -i multinode deploy --tags common,horizon,octavia
-```
 
 **Kiểm tra lại cấu hình**
 ```
