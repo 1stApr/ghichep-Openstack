@@ -152,7 +152,7 @@ pvcreate /dev/sdb /dev/sdc
 vgcreate cinder-volumes /dev/sdb /dev/sdc
 ```
 
-### 2.3 Trên các máy chủ Object Storage
+### 2.3 Trên các máy chủ Object Storage (Bỏ qua bước này nếu không muốn triển khai Object Storage-Swift)
 
 Thêm dòng **net.ipv4.ip_forward=1** vào **/etc/sysctl.conf**
 
@@ -185,7 +185,7 @@ done
 
 ----------
 
-### 2.4 Trên các máy chủ Operator node
+### 2.4 Trên máy chủ Operator node
 
 #### 2.4.1 Cài đặt sshpass
 
@@ -362,16 +362,20 @@ enable_neutron_provider_networks: "yes"
 enable_haproxy: "yes"
 nova_compute_virt_type: "kvm"
 
+#Cài Block Storage-Cinder
 enable_cinder: "yes"
 enable_cinder_backend_lvm: "yes"
 enable_cinder_backup: "no"
 
+#Cài đặt dịch vụ giám sát các máy chủ
 enable_prometheus: "yes"
 enable_grafana: "yes"
 
+#Cài dịch vụ Orchestration
 enable_heat: "yes"
 enable_senlin: "yes"
 
+#Bỏ qua phần này nếu không muốn triển khai Object Storage-Swift
 enable_swift : "yes"
 enable_swift_s3api: "yes"
 kolla_external_vip_interface: "{{ network_interface }}"
@@ -381,6 +385,20 @@ swift_storage_interface: "{{ storage_interface }}"
 swift_replication_interface: "{{ swift_storage_interface }}"
 glance_backend_swift: "yes"
 ```
+
+Trong đó:
+```
+  kolla_base_distro: Hệ điều hành đang sử dụng của các máy chủ (centos, debian, rhel, ubuntu)
+  kolla_install_type: Kiểu container image,thường là source (binary: sử dụng các repositories apt hoặc dnf, source: sử dụng nguồn lưu trữ raw git hoặc nguồn lưu trữ nội bộ)
+  openstack_release: Phiên bản OpenStack (train(Unmaintained), ussuri, victoria, wallaby, xena)
+  network_interface: management-type networks, mạng được dùng để quản lý, giao tiếp giữa các service của OpenStack.
+  neutron_external_interface: Mạng dành riêng cho Neutron external hoặc public network, có thể là vlan hoặc flat, dùng để cho các instance truy cập internet.
+  kolla_internal_vip_address: floating ip cho mạng quản lý, địa chỉ này phải chưa được sử dụng.
+  enable_neutron_provider_networks: Cho phép Neutron sử dụng mạng provider
+  nova_compute_virt_type: trình điều khiển ảo hóa (qemu, kvm, vmware, xenapi), mặc định là kvm
+ ```
+ 
+[Xem thêm về các loại mạng tại đây](https://docs.openstack.org/kolla-ansible/latest/admin/production-architecture-guide.html#network-configuration)
 
 ## 3 Triển khai cài đặt
 
@@ -392,7 +410,7 @@ Thực hiện trên máy chủ Operator node
 kolla-ansible -i multinode bootstrap-servers
 ```
 
-### 3.2 Cấu hình cho Swift
+### 3.2 Cấu hình cho Swift (Bỏ qua nếu không muốn triển khai Object Storage-Swift)
 
 #### 3.2.1 Chuẩn bị tạo Ring
 
@@ -516,8 +534,6 @@ kolla-ansible -i multinode deploy
 
 ## 4 Sử dụng OpenStack
 
-Trên máy chủ controller
-
 ### 4.1 Cài OpenStack CLI client:
 
 ```
@@ -585,7 +601,7 @@ openstack flavor create --id 11 --ram 16384 --disk 0 --vcpus  2 r5.large
 openstack flavor create --id 12 --ram 31768 --disk 0 --vcpus  4 r5.xlarge
 ```
 
-### 4.5 Tải lên Openstack image cirros
+### 4.5 Tải lên OpenStack image cirros
 
 ```
 wget http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
