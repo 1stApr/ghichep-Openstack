@@ -2,11 +2,11 @@
 - Tài liệu này hướng dẫn triển khai cài đặt Openstack trên các máy chủ Ubuntu Server 20.04 LTS
 - Ví dụ trong tài liệu này được thực hiện trên hệ thống gồm 13 máy chủ: 
   - 1 máy chủ Operator 
-  - 3 máy chủ Controller
-  - 3 máy chủ Compute
-  - 3 máy chủ Block storage
-  - 3 máy chủ Object storage
- 
+  - 3 máy chủ Controller (10.10.24.201-203)
+  - 3 máy chủ Compute (10.10.24.211-213)
+  - 3 máy chủ Block storage (10.10.24.221-223)
+  - 3 máy chủ Object storage (10.10.24.231-233)
+  - **( Có thể dùng máy Controller làm máy Operator)**
 
 ## Tài liệu tham khảo
 
@@ -14,9 +14,8 @@
 
 [Docker](https://docs.docker.com/)
 
-[Openstack Victoria Deployment](https://docs.openstack.org/victoria/deploy/index.html)
+[Openstack Docs](https://docs.openstack.org/)
 
-[Window Server Image](https://1drv.ms/u/s!Ah2QX3LCAkYQi5B4zGVbbQm6u3kAJA?e=fvtate)
 
 ## 1 Cài đặt hệ điều hành
 
@@ -30,11 +29,11 @@ Khuyến khích sử dụng Ubuntu Server 20.04 LTS
 
 ### 1.1 Yêu cầu phần cứng
 
-Để hoạt động ổn định cần tối thiểu 3 máy chủ đáp ứng các yêu cầu phần cứng sau:
+Để hoạt động ổn định máy chủ đáp ứng các yêu cầu phần cứng sau:
 
 |     |		Tối thiểu	     |	  Khuyến cáo    |  
 |----------|---------------------|-------------------|
-| CPU | 2 CPU  6 core @ 2.4 GHz | 4CPU 6 core @ 2.67 GHz  |
+| CPU | 2 CPU  6 core @ 2.4 GHz | 2CPU 12 core @ 2.67 GHz  |
 |RAM|32 GB|96 GB |
 |DISK|HDD: 1 Disk SAS 500GB (7200 rpm) | HDD: 3 Disk SAS 500GB (7200 rpm) |
 
@@ -51,15 +50,15 @@ Hoặc các cấu hình tương tự khác:
 -  /: 100 GB
 -  /var: Dung lượng ổ cứng còn lại cho hết vào phân vùng /var ( >300GB)
 
-Trên các máy chủ Block Storage và Object Storage ngoài ổ đĩa cài hệ điều hành thì cần thêm ổ đĩa để lưu trữ dữ liệu (Trên Block Storage cần thêm 2 ổ đĩa, trên Object Storage cần thêm 3 ổ đĩa).
+Trên các máy chủ Block Storage và Object Storage ngoài ổ đĩa cài hệ điều hành thì cần thêm ổ đĩa để lưu trữ dữ liệu (Trên Block Storage cần thêm >=2 ổ đĩa, trên Object Storage cần thêm >=3 ổ đĩa).
 
 ### 1.3 Yêu cầu về mạng
 
 Mỗi máy chủ cần có ít nhất 2 giao diện mạng (NICs)( Khuyến khích có 3 hoặc 4 NICs ). Một vài loại mạng cơ bản được dùng:
- -  **Management network**: Được sử dụng để giao tiếp giữa các thành phần của Openstack.
+ - **Management network**: Được sử dụng để giao tiếp giữa các thành phần của Openstack.
  - **External network**: Được sử dụng để cho các máy ảo truy cập Internet.
  - **Corporate network**: Được sử dụng để cho các máy chủ truy cập Internet.
- - **Storage network**: Được sử dụng để truy cập vào các hệ thống lưu trữ bên ngoài.
+ - **Storage network**: Được sử dụng để truy cập vào các hệ thống lưu trữ.
 
 ### 1.4 Tham khảo cấu hình mạng trong file netplan:
 
@@ -103,7 +102,7 @@ network:
   Kiểm tra các máy chủ có kết nối Internet hay chưa:
 
   ```
-  ping -c 4 8.8.8.8 -I eno1
+  ping -c 4 8.8.8.8 -I eno4
   ```
 
 - Xem các phân vùng ổ đĩa:
@@ -137,9 +136,9 @@ timedatectl set-timezone Asia/Ho_Chi_Minh
 
 ### 2.2 Trên các máy chủ Block Storage 
 
-** Tạo phân vùng Cinder**
+**Tạo phân vùng Cinder**
 
-Ví dụ phân vùng cho Cinder là /dev/sdb và /dev/sdc:
+Ví dụ 2 phân vùng cho Cinder là /dev/sdb và /dev/sdc:
 
 ⚠️ Tất cả dữ liệu trên phân vùng /dev/sdb và /dev/sdc sẽ bị mất!
 
@@ -171,7 +170,7 @@ sudo sysctl -p
 ```
 
 Chuẩn bị ổ đĩa để làm thiết bị lưu trữ Swift
-
+Ví dụ 3 phân vùng cho Swift là /dev/sdc, /dev/sdd và /dev/sde:
 ⚠️ Tất cả dữ liệu trên phân vùng sdc, sdd và sde sẽ bị mất!
 
 ```
@@ -222,7 +221,7 @@ Ví dụ:
 
 #### 2.4.3 Cài đặt các package
 
-Cài đặt các Python và các thư viện phụ thuộc
+Cài đặt Python và các thư viện phụ thuộc
 
 ```
 sudo apt install python3-dev libffi-dev gcc libssl-dev -y
@@ -265,7 +264,7 @@ Copy các file globals.yml, passwords.yml vào thư mục /etc/kolla
 cp -r /usr/local/share/kolla-ansible/etc_examples/kolla/* /etc/kolla
 ```
 
-Copy all-in-one và multinode files 
+Copy 2 file all-in-one và multinode files 
 
 ```
 cp /usr/local/share/kolla-ansible/ansible/inventory/* .
@@ -297,9 +296,12 @@ vi multinode
 ansible_connection=ssh
 ansible_become=true
 ansible_ssh_port=22
-ansible_ssh_user=root
+ansible_ssh_user=USER
 ansible_ssh_pass=SSH_PASS
 ansible_sudo_pass=SUDO_PASS
+#ansible_ssh_user=root
+#ansible_ssh_pass=pass
+#ansible_sudo_pass=pass
 
 [control]
 control01
@@ -354,7 +356,7 @@ kolla_base_distro: "ubuntu"
 kolla_install_type: "source"
 openstack_release: "wallaby"
 neutron_bridge_name: "br-ex"
-network_interface: "eno2"
+network_interface: "eno4"
 neutron_external_interface: "bond0"
 kolla_internal_vip_address: "10.10.24.250"
 enable_chrony: "yes"
@@ -410,12 +412,12 @@ Thực hiện trên máy chủ Operator node
 kolla-ansible -i multinode bootstrap-servers
 ```
 
-### 3.2 Cấu hình cho Swift (Bỏ qua nếu không muốn triển khai Object Storage-Swift)
+### 3.2 Cấu hình cho Swift (Bỏ qua bước này nếu không muốn triển khai Object Storage-Swift)
 
 #### 3.2.1 Chuẩn bị tạo Ring
 
 ```
-STORAGE_NODES=(10.10.24.31 10.10.24.32 10.10.24.33)
+STORAGE_NODES=(10.10.24.231 10.10.24.232 10.10.24.233)
 KOLLA_SWIFT_BASE_IMAGE="kolla/ubuntu-source-swift-base:wallaby"
 mkdir -p /etc/kolla/config/swift
 ```
@@ -526,6 +528,8 @@ systemctl | grep "openvswitch"
 systemctl stop openvswitch-switch
 ```
 
+Triển khai cài đặt
+
 ```
 kolla-ansible -i multinode deploy
 ```
@@ -617,7 +621,7 @@ glance image-create --name "cirros" \
   --disk-format qcow2 --container-format bare \
   --visibility=public
 ```
-### 4.6 Cài LoadBalancer 
+### 4.6 Cài LoadBalancer-Octavia (Bỏ qua bước này nếu không muốn cài dịch vụ cân bằng tải)
 
 Thêm các dòng sau vào file globals.yml
 
@@ -631,7 +635,7 @@ octavia_certs_country: US
 octavia_certs_state: Oregon
 octavia_certs_organization: OpenStack
 octavia_certs_organizational_unit: Octavia
-octavia_network_interface: "enp0s9"
+octavia_network_interface: "eno4"
 octavia_auto_configure: no
 enable_horizon_octavia: "{{ enable_octavia | bool }}"
 ```
@@ -656,7 +660,7 @@ kolla_base_distro: "ubuntu"
 kolla_install_type: "source"
 openstack_release: "xena"
 neutron_bridge_name: "br-ex"
-network_interface: "eno2"
+network_interface: "eno4"
 neutron_external_interface: "bond0"
 kolla_internal_vip_address: "10.10.24.250"
 enable_chrony: "yes"
@@ -691,7 +695,7 @@ octavia_certs_country: US
 octavia_certs_state: Oregon
 octavia_certs_organization: OpenStack
 octavia_certs_organizational_unit: Octavia
-octavia_network_interface: "enp0s9"
+octavia_network_interface: "eno4"
 
 octavia_auto_configure: no
 
@@ -705,19 +709,15 @@ enable_horizon_octavia: "{{ enable_octavia | bool }}"
 
 ## 5 Các lỗi hay gặp và lưu ý khác
 
-**Không thể chạy lệnh apt update?**
+**Không thể chạy apt update, cài đặt các package hoặc pull các image**
 
   - Thêm **nameserver 8.8.8.8** vào **/etc/resolv.conf**
-
-**Không thể tải image prometheus**
-
+  - Kiểm tra lại kết nối mạng, proxy.
   - Kiểm tra timezone
 
-  ```
-  date
-  ```
-
 **Lỗi Container openvswitch_db restart**
+
+Thường là do chưa tắt openvswitch
 
 ```
 systemctl | grep "openvswitch"
@@ -747,11 +747,7 @@ systemctl stop openvswitch-switch
 
 **Lỗi khi đặt enable_haproxy: "yes" trong file globals**
 
-  - Xóa Docker container mariadb mariadb_clustercheck trước khi deploy
-
-**Khi đặt kolla_internal_vip_address giống ip controller**
-
-  - Đặt enable_haproxy: "no" trong file globals
+  - Xóa Docker container mariadb mariadb_clustercheck trước khi deploy lại
 
 **Đặt lại mật khẩu admin Grafana**
 
@@ -780,8 +776,8 @@ grafana-cli admin reset-admin-password <NEW_PASS>
 
   ```
   [Service]
-  Environment="HTTP_PROXY=http://10.61.11.42:3128/"
-  Environment="HTTPS_PROXY=http://10.61.11.42:3128/"
+  Environment="HTTP_PROXY=http://proxy:port/"
+  Environment="HTTPS_PROXY=http://proxy:port/"
   ```
 
   - Tải lại thay đổi:
